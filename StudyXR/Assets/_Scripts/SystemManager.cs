@@ -6,11 +6,19 @@ public class SystemManager : MonoBehaviour
 
 
     public GUIManager GUIManager;
-    public SceneManager SceneManager;
+    public EnvManager EnvManager;
+    public StudyManager StudyManager;
 
     void SetManager()
     {
+        GUIManager.SetManager(this);
+        EnvManager.SetManager(this);
+        StudyManager.SetManager(this);
+    }
 
+    void Start()
+    {
+        SetManager();
     }
 
 

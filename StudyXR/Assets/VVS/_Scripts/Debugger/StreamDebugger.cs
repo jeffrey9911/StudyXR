@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -15,7 +16,7 @@ public class StreamRTDebuggerInspector
 public class StreamDebugger : MonoBehaviour
 {
     public StreamManager streamManager;
-    public Text textDebug;
+    public TMP_InputField textDebug;
     public StreamRTDebuggerInspector Inspector;
 
     public void SetManager(StreamManager manager)
@@ -25,7 +26,8 @@ public class StreamDebugger : MonoBehaviour
 
     public void DebugText(string text)
     {
-        textDebug.text += $"[{DateTime.Now.ToString("HH:mm:ss")}] {text} \n";
+        if (textDebug != null) textDebug.text += $"[{DateTime.Now.ToString("HH:mm:ss")}] {text} \n";
+        
     }
 
 

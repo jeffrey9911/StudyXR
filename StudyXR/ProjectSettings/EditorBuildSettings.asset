@@ -8,6 +8,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/_Scenes/MainScene/Main.unity
     guid: 2b6d1c74c00c4c04e8e8c5443fb1db8b
+  - enabled: 0
+    path: Assets/TLab/TLabWebViewVR/MetaXR/Samples/Scenes/MetaXR Sample.unity
+    guid: 4b7eb4c46a9c51446ba14f1a05b2ae4d
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: a99fe5e60072dd247a223e9fdf6e6ea8, type: 2}

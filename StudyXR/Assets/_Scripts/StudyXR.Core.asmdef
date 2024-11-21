@@ -1,0 +1,20 @@
+{
+    "name": "StudyXR.Core",
+    "rootNamespace": "",
+    "references": [
+        "GUID:6055be8ebefd69e48b49212b09b47b2f",
+        "GUID:f64c9ebcd7899c3448a08dc9f9ddbe30",
+        "GUID:7f9db3a0ef81947b2902be619d52df34",
+        "GUID:643142c4527239447a4feb8d9fba651e",
+        "GUID:c70208384e755dc47bf7357c1918d1be"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

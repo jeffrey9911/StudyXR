@@ -1,0 +1,18 @@
+{
+    "name": "VVS",
+    "rootNamespace": "",
+    "references": [
+        "GUID:6055be8ebefd69e48b49212b09b47b2f",
+        "GUID:1f1db07d22489445ab0fc8ed6ef2ed4f",
+        "GUID:1f1db07d22489445ab0fc8ed6ef2ed4f"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

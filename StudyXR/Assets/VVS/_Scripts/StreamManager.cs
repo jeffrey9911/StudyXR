@@ -15,17 +15,21 @@ public class StreamManager : MonoBehaviour
     [HideInInspector]
     public StreamDebugger streamDebugger;
 
+    public bool PlayOnLoad = false;
     public bool EnableStreamDebugger = false;
     public bool OverideConfigLink = false;
     public string OverideDomainBaseLink = "";
     public string OverideVVFolderLinkName = "";
 
+    
+    public bool isAllMeshesLoaded = false;
+
     void Start()
     {
-        streamHandler = this.AddComponent<StreamHandler>();
-        streamFrameHandler = this.AddComponent<StreamFrameHandler>();
-        streamContainer = this.AddComponent<StreamContainer>();
-        streamPlayer = this.AddComponent<StreamPlayer>();
+        streamHandler = this.gameObject.AddComponent<StreamHandler>();
+        streamFrameHandler = this.gameObject.AddComponent<StreamFrameHandler>();
+        streamContainer = this.gameObject.AddComponent<StreamContainer>();
+        streamPlayer = this.gameObject.AddComponent<StreamPlayer>();
 
 
         streamHandler.SetManager(this);
@@ -49,19 +53,57 @@ public class StreamManager : MonoBehaviour
         SendDebugText("Stream Manager Initialized");
     }
 
-    [ContextMenu("Start Load Header")]
-    public void StartLoading()
+    public void SetConfig(string baseLink, string folderName)
+    {
+        OverideConfigLink = true;
+        OverideDomainBaseLink = baseLink;
+        OverideVVFolderLinkName = folderName;
+    }
+
+    [ContextMenu("Streaming Play")]
+    public void StreamingPlay()
     {
         try
         {
-            streamHandler.LoadHeader();
+            if (!isAllMeshesLoaded)
+            {
+                streamHandler.LoadHeader();
+            }
+            else
+            {
+                streamPlayer.Play();
+            }
         }
         catch (System.Exception e)
         {
             SendDebugText(e.Message);
             throw;
         }
-        
+    }
+
+    [ContextMenu("PreLoad Meshes")]
+    public void PreLoadMeshes()
+    {
+        PlayOnLoad = false;
+        streamHandler.LoadHeader();
+    }
+
+    [ContextMenu("Manual Play")]
+    public void ManualPlay()
+    {
+        streamPlayer.Play();
+    }
+
+    [ContextMenu("Manual Pause")]
+    public void ManualPause()
+    {
+        streamPlayer.Pause();
+    }
+
+    [ContextMenu("Manual Stop")]
+    public void ManualStop()
+    {
+        streamPlayer.Stop();
     }
 
     public void FinishLoadHeader()

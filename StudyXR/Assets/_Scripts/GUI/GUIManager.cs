@@ -1,4 +1,17 @@
+using System;
+using System.Linq;
+using NUnit.Framework.Internal;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
+
+public enum SettingType
+{
+    StimulusPosition,
+    SitmulusRotation,
+    LightingDirection,
+    LightingIntensity
+}
 
 public class ControllerPositionState
 {
@@ -26,10 +39,36 @@ public class ControllerPositionState
         return right - RightControllerPosition;
     }
 
+    public float GetLMoveHorizontal(Vector3 left, Vector3 forward)
+    {
+        forward = forward.normalized;
+        Vector3 leftMove = left - LeftControllerPosition;
+
+        float projection = Vector3.Dot(leftMove, forward);
+        Vector3 projectedVector = projection * forward;
+
+        Vector3 horizontalMove = leftMove - projectedVector;
+
+        float distance = horizontalMove.magnitude;
+
+        Vector3 cross = Vector3.Cross(forward, leftMove);
+        float sign = Mathf.Sign(cross.y);
+
+        return distance * sign;
+    }
+
 }
 
 public class GUIManager : MonoBehaviour
 {
+    [HideInInspector]
+    public SystemManager SystemManager;
+    public void SetManager(SystemManager systemManager)
+    {
+        this.SystemManager = systemManager;
+    }
+
+    // MAIN CANVAS UI
     public GameObject MainCanvas;
 
     public GameObject ScaleIndicator;
@@ -42,6 +81,8 @@ public class GUIManager : MonoBehaviour
     public Transform RightHandAnchor;
     public Transform CentreEye;
 
+    public Transform Cursor;
+
     bool isDisplayGUI = true;
 
     Vector3 AnchorPosition = new Vector3(0, 0, 0);
@@ -49,17 +90,33 @@ public class GUIManager : MonoBehaviour
     Quaternion AnchorRotation = new Quaternion(0, 0, 0, 0);
     float FollowSpeed = 5f;
 
+    // CONFIG UI
+    public GameObject ConfigPanel;
+    float ConfigToggleTimer = 0f;
+    public ToggleGroup TogglesGroup;
+    SettingType ActiveSettingType;
+
+
     void Start()
     {
         AnchorPosition = MainCanvas.transform.position;
         AnchorScale = MainCanvas.transform.localScale;
         AnchorRotation = MainCanvas.transform.rotation;
+
+        ConfigPanel.SetActive(false);
     }
 
     void Update()
     {
         UIUpdateAnchor();
+        
         FollowAnchor();
+        UpdateCursor();
+        CheckConfigToggle();
+
+        UpdateConfigSettings();
+
+        UpdateControllerState();
     }
 
     void UIUpdateAnchor()
@@ -104,11 +161,19 @@ public class GUIManager : MonoBehaviour
                 ScaleIndicator.SetActive(false);
             }
 
-            ControllerPositionState.UpdateControllerPosition(LeftHandAnchor.localPosition, RightHandAnchor.localPosition);
+            
 
             Quaternion lookatRot = Quaternion.LookRotation(CentreEye.position - AnchorPosition, Vector3.up);
             lookatRot *= Quaternion.Euler(0f, 180f, 0f);
             AnchorRotation = lookatRot;
+        }
+    }
+
+    void UpdateControllerState()
+    {
+        if (isDisplayGUI)
+        {
+            ControllerPositionState.UpdateControllerPosition(LeftHandAnchor.localPosition, RightHandAnchor.localPosition);
         }
     }
 
@@ -117,6 +182,115 @@ public class GUIManager : MonoBehaviour
         MainCanvas.transform.position = Vector3.Lerp(MainCanvas.transform.position, AnchorPosition, Time.deltaTime * FollowSpeed);
         MainCanvas.transform.rotation = Quaternion.Lerp(MainCanvas.transform.rotation, AnchorRotation, Time.deltaTime * FollowSpeed);
         MainCanvas.transform.localScale = Vector3.Lerp(MainCanvas.transform.localScale, AnchorScale, Time.deltaTime * FollowSpeed);
+    }
+
+    void UpdateCursor()
+    {
+        Cursor.rotation = Quaternion.LookRotation(CentreEye.position - Cursor.position, Vector3.up);
+    }
+
+    void CheckConfigToggle()
+    {
+        if (OVRInput.Get(OVRInput.Button.PrimaryThumbstick) && OVRInput.Get(OVRInput.Button.SecondaryThumbstick))
+        {
+            ConfigToggleTimer += Time.deltaTime;
+        }
+        else if (OVRInput.GetUp(OVRInput.Button.PrimaryThumbstick) || OVRInput.GetUp(OVRInput.Button.SecondaryThumbstick))
+        {
+            ConfigToggleTimer = 0;
+        }
+
+        if (ConfigToggleTimer > 2f)
+        {
+            ToggleConfigMode();
+            ConfigToggleTimer = 0;
+        }
+    }
+
+    [ContextMenu("Toggle Config Mode")]
+    public void ToggleConfigMode()
+    {
+        if (ConfigPanel.activeSelf)
+        {
+            // Turn off config mode
+            ConfigPanel.SetActive(false);
+            SystemManager.EnvManager.ToggleOffDebugObject();
+        }
+        else
+        {
+            ConfigPanel.SetActive(true);
+            SystemManager.EnvManager.ToggleOnDebugObject(LeftHandAnchor.position);
+        }
+    }
+
+    void UpdateConfigSettings()
+    {
+        if (ConfigPanel.activeSelf)
+        {
+            if (OVRInput.Get(OVRInput.Button.PrimaryIndexTrigger))
+            {
+                switch (ActiveSettingType)
+                {
+                    case SettingType.StimulusPosition:
+                        SetStimulusPosition();
+                        break;
+                    case SettingType.SitmulusRotation:
+                        SetStimulusRotation();
+                        break;
+                    case SettingType.LightingDirection:
+                        SetLightingDirection();
+                        break;
+                    case SettingType.LightingIntensity:
+                        SetLightingIntensity();
+                        break;
+                }
+            }
+        }
+    }
+
+    void SetStimulusPosition()
+    {
+        SystemManager.EnvManager.AddStimulusPosition(ControllerPositionState.GetLMove(LeftHandAnchor.localPosition));
+    }
+
+    void SetStimulusRotation()
+    {
+        SystemManager.EnvManager.AddStimulusRotation(ControllerPositionState.GetLMoveHorizontal(LeftHandAnchor.localPosition, CentreEye.forward));
+    }
+
+    void SetLightingDirection()
+    {
+        SystemManager.EnvManager.SetLightingDirection(LeftHandAnchor.rotation);
+    }
+
+    void SetLightingIntensity()
+    {
+        SystemManager.EnvManager.AddLightingIntensity(ControllerPositionState.GetLMoveHorizontal(LeftHandAnchor.localPosition, CentreEye.forward));
+    }
+
+    public void OnToggleChanged()
+    {
+        Toggle activeToggle = TogglesGroup.ActiveToggles().FirstOrDefault();
+
+        switch (activeToggle.transform.GetSiblingIndex())
+        {
+            case 0:
+                ActiveSettingType = SettingType.StimulusPosition;
+                SystemDebugger.Instance.Log("Setting Stimulus Position");
+                break;
+            case 1:
+                ActiveSettingType = SettingType.SitmulusRotation;
+                SystemDebugger.Instance.Log("Setting Stimulus Rotation");
+                break;
+            case 2:
+                ActiveSettingType = SettingType.LightingDirection;
+                SystemDebugger.Instance.Log("Setting Lighting Direction");
+                break;
+            case 3:
+                ActiveSettingType = SettingType.LightingIntensity;
+                SystemDebugger.Instance.Log("Setting Lighting Intensity");
+                break;
+        }
     }
 
 }

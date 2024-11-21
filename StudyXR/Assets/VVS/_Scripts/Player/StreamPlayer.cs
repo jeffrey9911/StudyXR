@@ -75,7 +75,7 @@ public class StreamPlayer : MonoBehaviour
 
         isPlayerReady = true;
 
-        TexturePlayer.Play();
+        if (streamManager.PlayOnLoad) TexturePlayer.Play();
 
         streamManager.SetDebugTexturePreview(TextureRenderer);
     }
@@ -129,9 +129,8 @@ public class StreamPlayer : MonoBehaviour
 
     IEnumerator AVMSyncBuffer()
     {
-        streamManager.SendDebugText("AVM Sync Buffer");
+        streamManager.SendDebugText("AVM Sync Start Buffering");
 
-        Debug.Log("Start Buffering");
         for (int i = 0; i < (int)(BufferTime * streamManager.streamHandler.vvheader.fps); i++)
         {
             yield return null;
@@ -143,12 +142,30 @@ public class StreamPlayer : MonoBehaviour
 
             if (!streamManager.streamContainer.FrameContainer[TargetFrame + i].isLoaded)
             {
+                if (TexturePlayer.isPlaying) TexturePlayer.Pause();
                 i--;
                 continue;
             }
         }
 
-        Debug.Log("Buffering Done");
+        streamManager.SendDebugText("AVM Sync End Buffering");
         TexturePlayer.Play();
     }
+
+    public void Play()
+    {
+        TexturePlayer.Play();
+    }
+
+    public void Pause()
+    {
+        TexturePlayer.Pause();
+    } 
+
+    public void Stop()
+    {
+        TexturePlayer.Stop();
+        PlayerInstanceMesh.mesh = null;
+    }
+
 }

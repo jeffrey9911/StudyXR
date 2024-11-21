@@ -4,7 +4,7 @@ using UnityEngine.EventSystems;
 namespace TLab.Android.WebView
 {
     public class WebViewInputListener : MonoBehaviour,
-        IPointerDownHandler, IDragHandler, IPointerUpHandler, IPointerExitHandler
+        IPointerDownHandler, IDragHandler, IPointerUpHandler, IPointerExitHandler, IScrollHandler
     {
         [SerializeField] private TLabWebView m_webview;
 
@@ -75,6 +75,20 @@ namespace TLab.Android.WebView
             }
         }
 
+        public void OnScroll(PointerEventData eventData)
+        {
+            /*
+            if (GetInputPosition(eventData))
+            {
+                m_webview.TouchEvent(
+                    (int)(eventData.scrollDelta.x * m_webview.webSize.x / 2), 
+                    (int)(eventData.scrollDelta.y * m_webview.webSize.y / 2), 
+                    (int)WebTouchEvent.DRAG  // or another appropriate event type
+                );
+            }
+            */
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -126,6 +140,7 @@ namespace TLab.Android.WebView
             if (canvas == null)
             {
                 Debug.LogError(THIS_NAME + "canvas not found");
+                //SystemDebugger.Instance.Log(THIS_NAME + "canvas not found");
                 return;
             }
 

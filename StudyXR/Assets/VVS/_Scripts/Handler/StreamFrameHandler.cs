@@ -61,6 +61,23 @@ public class StreamFrameHandler : MonoBehaviour
 
             yield return null;
         }
+
+        while (!streamManager.isAllMeshesLoaded)
+        {
+            foreach (var frame in streamManager.streamContainer.FrameContainer)
+            {
+                if (!frame.isLoaded)
+                {
+                    yield return null;
+                    break;
+                }
+
+                streamManager.isAllMeshesLoaded = true;
+                streamManager.SendDebugText("All Meshes Loaded");
+            }
+
+            yield return new WaitForSeconds(.5f);
+        }
     }
 
     IEnumerator iHandleDownload(int index, string url)
