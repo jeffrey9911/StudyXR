@@ -40,6 +40,7 @@ public class StudyManager : MonoBehaviour
         {
             GameObject VVS = Instantiate(VVSPrefab, SystemManager.EnvManager.StimulusAnchor);
             VVS.transform.localPosition = Vector3.zero;
+            VVS.transform.localRotation = Quaternion.identity;
             StreamManager streamManager = VVS.GetComponent<StreamManager>();
             streamManager.SetConfig(study.DomainLink, study.AssetName);
 
@@ -118,6 +119,21 @@ public class StudyManager : MonoBehaviour
         }
 
         StartCurrentStudy();
+    }
+
+    public void DebugPlayNext()
+    {
+        CurrentStudyIndex++;
+        if (CurrentStudyIndex >= StudyList.Count)
+        {
+            CurrentStudyIndex = 0;
+        }
+
+        CloseAllStudies();
+
+        VVStudy currentStudy = StudyList[CurrentStudyIndex];
+
+        StimulusList[currentStudy].ManualPlay();
     }
 
     public void PreviousStudy()

@@ -15,6 +15,7 @@ public class WebManager : MonoBehaviour
 
     public void LoadWebPage(string url)
     {
+        WebView.LoadUrl("about:blank");
         WebView.LoadUrl(url);
     }
     
