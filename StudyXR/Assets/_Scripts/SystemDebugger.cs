@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class SystemDebugger : MonoBehaviour
 {
@@ -18,6 +19,7 @@ public class SystemDebugger : MonoBehaviour
     }
 
     public TMP_InputField DebuggerText;
+    public RawImage DebuggerImage;
 
     public void Log(string message)
     {

@@ -24,7 +24,7 @@ public class StreamManager : MonoBehaviour
     
     public bool isAllMeshesLoaded = false;
 
-    void Start()
+    void Awake()
     {
         streamHandler = this.gameObject.AddComponent<StreamHandler>();
         streamFrameHandler = this.gameObject.AddComponent<StreamFrameHandler>();

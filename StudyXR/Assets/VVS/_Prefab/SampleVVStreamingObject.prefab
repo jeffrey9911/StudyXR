@@ -51,7 +51,7 @@ MonoBehaviour:
   streamPlayer: {fileID: 0}
   streamDebugger: {fileID: 0}
   PlayOnLoad: 0
-  EnableStreamDebugger: 0
+  EnableStreamDebugger: 1
   OverideConfigLink: 0
   OverideDomainBaseLink: 
   OverideVVFolderLinkName: 

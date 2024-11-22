@@ -8,12 +8,14 @@ public class SystemManager : MonoBehaviour
     public GUIManager GUIManager;
     public EnvManager EnvManager;
     public StudyManager StudyManager;
+    public WebManager WebManager;
 
     void SetManager()
     {
         GUIManager.SetManager(this);
         EnvManager.SetManager(this);
         StudyManager.SetManager(this);
+        WebManager.SetManager(this);
     }
 
     void Start()

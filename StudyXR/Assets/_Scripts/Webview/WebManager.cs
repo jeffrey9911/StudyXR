@@ -12,5 +12,10 @@ public class WebManager : MonoBehaviour
     }
     
     public TLabWebView WebView;
+
+    public void LoadWebPage(string url)
+    {
+        WebView.LoadUrl(url);
+    }
     
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using NUnit.Framework.Internal;
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -95,6 +96,18 @@ public class GUIManager : MonoBehaviour
     float ConfigToggleTimer = 0f;
     public ToggleGroup TogglesGroup;
     SettingType ActiveSettingType;
+    public TMP_InputField PidInput;
+
+    // USER UI
+    public TMP_Text PidText;
+    public TMP_Text PromptText;
+
+    public GameObject TutorialPanel;
+    public GameObject TutorialButton;
+    public GameObject StartButton;
+    public GameObject NextButton;
+    public GameObject BackButton;
+    public GameObject EndingPanel;
 
 
     void Start()
@@ -118,6 +131,8 @@ public class GUIManager : MonoBehaviour
 
         UpdateControllerState();
     }
+
+    // MAIN CANVAS UI
 
     void UIUpdateAnchor()
     {
@@ -188,6 +203,8 @@ public class GUIManager : MonoBehaviour
     {
         Cursor.rotation = Quaternion.LookRotation(CentreEye.position - Cursor.position, Vector3.up);
     }
+
+    // CONFIG UI
 
     void CheckConfigToggle()
     {
@@ -291,6 +308,78 @@ public class GUIManager : MonoBehaviour
                 SystemDebugger.Instance.Log("Setting Lighting Intensity");
                 break;
         }
+    }
+
+
+    [ContextMenu("Set PID")]
+    public void SetPid()
+    {
+        PidText.text = $"Your PID: {PidInput.text}";
+        SystemDebugger.Instance.Log($"Set PID: {PidInput.text}");
+    }
+
+    // USER UI
+
+    public void SetPromptText(string text)
+    {
+        PromptText.text = text;
+    }
+
+    [ContextMenu("Next Study")]
+    public void OnNextClick()
+    {
+        SystemManager.StudyManager.NextStudy();
+    }
+
+    [ContextMenu("Previous Study")]
+    public void OnBackClick()
+    {
+        SystemManager.StudyManager.PreviousStudy();
+    }
+
+    [ContextMenu("Start Study")]
+    public void OnStartClick()
+    {
+        //SystemManager.StudyManager.StartStudy();
+        SystemManager.StudyManager.StartStudyFrom(0);
+        StartStudyLayer();
+
+    }
+
+    [ContextMenu("Toggle Tutorial")]
+    public void ToggleTutorial()
+    {
+        TutorialPanel.SetActive(!TutorialPanel.activeSelf);
+    }
+
+    public void EndUserLayer()
+    {
+        EndingPanel.SetActive(true);
+        TutorialPanel.SetActive(false);
+        TutorialButton.SetActive(false);
+        StartButton.SetActive(false);
+        NextButton.SetActive(false);
+        BackButton.SetActive(false);
+    }
+
+    public void StartUserLayer()
+    {
+        EndingPanel.SetActive(false);
+        TutorialPanel.SetActive(true);
+        TutorialButton.SetActive(true);
+        StartButton.SetActive(true);
+        NextButton.SetActive(false);
+        BackButton.SetActive(false);
+    }
+
+    public void StartStudyLayer()
+    {
+        EndingPanel.SetActive(false);
+        TutorialPanel.SetActive(false);
+        TutorialButton.SetActive(false);
+        StartButton.SetActive(false);
+        NextButton.SetActive(true);
+        BackButton.SetActive(true);
     }
 
 }
