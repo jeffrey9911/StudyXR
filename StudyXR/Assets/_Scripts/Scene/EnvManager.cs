@@ -1,3 +1,4 @@
+using Meta.XR.MRUtilityKit;
 using UnityEngine;
 
 public class EnvManager : MonoBehaviour
@@ -14,17 +15,31 @@ public class EnvManager : MonoBehaviour
 
     public Light OverallLighting;
     public GameObject LightingDebugObject;
+    public EffectMesh[] EffectMeshes;
 
     void Start()
     {
         StimulusDebugObject.SetActive(false);
         LightingDebugObject.SetActive(false);
+
+        EnableEffectMeshes();
+    }
+
+    public void PausePhysics()
+    {
+        StimulusAnchor.GetComponent<Rigidbody>().isKinematic = true;
+    }
+
+    public void ResumePhysics()
+    {
+        StimulusAnchor.GetComponent<Rigidbody>().isKinematic = false;
     }
 
 
-    public void AddStimulusPosition(Vector3 position)
+    public void AddStimulusPosition(Vector3 position, float controllerY)
     {
         StimulusAnchor.position += position;
+        StimulusAnchor.position = new Vector3(StimulusAnchor.position.x, controllerY, StimulusAnchor.position.z);
     }
 
     public void AddStimulusRotation(float angle)
@@ -54,4 +69,22 @@ public class EnvManager : MonoBehaviour
         StimulusDebugObject.SetActive(true);
         LightingDebugObject.SetActive(true);
     }
+
+    public void EnableEffectMeshes()
+    {
+
+        try
+        {
+            foreach (var effectMesh in EffectMeshes)
+            {
+                effectMesh.CreateMesh();
+            }
+        }
+        catch (System.Exception e)
+        {
+            SystemDebugger.Instance.Log("Error in EnvManager.EnableEffectMeshes: " + e.Message);
+            throw;
+        }
+    }
+
 }

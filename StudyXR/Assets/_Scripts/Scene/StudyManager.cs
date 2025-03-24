@@ -4,8 +4,9 @@ using UnityEngine;
 using UnityEngine.UI;
 
 [Serializable]
-public class VVStudy
+public class XRStudySession
 {
+    public bool OverideVVPlayback = false;
     public string DomainLink = "";
     public string AssetName = "";
     public string StudyQuestionnaire = "";
@@ -27,16 +28,16 @@ public class StudyManager : MonoBehaviour
     public GameObject VVSPrefab;
 
     [SerializeField]
-    public List<VVStudy> StudyList = new List<VVStudy>();
+    public List<XRStudySession> StudyList = new List<XRStudySession>();
 
-    public Dictionary<VVStudy, StreamManager> StimulusList = new Dictionary<VVStudy, StreamManager>();
+    public Dictionary<XRStudySession, StreamManager> StimulusList = new Dictionary<XRStudySession, StreamManager>();
 
     public int CurrentStudyIndex = -1;
 
     [ContextMenu("Initialize Studies")]
     public void InitializeStudies()
     {
-        foreach (VVStudy study in StudyList)
+        foreach (XRStudySession study in StudyList)
         {
             GameObject VVS = Instantiate(VVSPrefab, SystemManager.EnvManager.StimulusAnchor);
             VVS.transform.localPosition = Vector3.zero;
@@ -67,6 +68,7 @@ public class StudyManager : MonoBehaviour
     {
         foreach (var study in StimulusList)
         {
+            if (study.Key.OverideVVPlayback) continue;
             study.Value.PreLoadMeshes();
         }
     }
@@ -80,19 +82,23 @@ public class StudyManager : MonoBehaviour
 
         CloseAllStudies();
 
-        VVStudy currentStudy = StudyList[CurrentStudyIndex];
+        XRStudySession currentStudy = StudyList[CurrentStudyIndex];
 
+        
         SystemManager.GUIManager.SetPromptText(currentStudy.PromptText);
+
+        // GUI => Set progress bar
+
         SystemManager.WebManager.LoadWebPage(currentStudy.StudyQuestionnaire);
 
-        StimulusList[currentStudy].ManualPlay();
+        if (!currentStudy.OverideVVPlayback) StimulusList[currentStudy].ManualPlay();
     }
 
     public void CloseAllStudies()
     {
         foreach (var study in StimulusList)
         {
-            study.Value.ManualStop();
+            if (!study.Key.OverideVVPlayback) study.Value.ManualStop();
         }
     }
 
@@ -131,7 +137,7 @@ public class StudyManager : MonoBehaviour
 
         CloseAllStudies();
 
-        VVStudy currentStudy = StudyList[CurrentStudyIndex];
+        XRStudySession currentStudy = StudyList[CurrentStudyIndex];
 
         StimulusList[currentStudy].ManualPlay();
     }

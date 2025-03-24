@@ -246,6 +246,8 @@ public class GUIManager : MonoBehaviour
         {
             if (OVRInput.Get(OVRInput.Button.PrimaryIndexTrigger))
             {
+                SystemManager.EnvManager.PausePhysics();
+
                 switch (ActiveSettingType)
                 {
                     case SettingType.StimulusPosition:
@@ -262,12 +264,17 @@ public class GUIManager : MonoBehaviour
                         break;
                 }
             }
+
+            if (OVRInput.GetUp(OVRInput.Button.PrimaryIndexTrigger))
+            {
+                SystemManager.EnvManager.ResumePhysics();
+            }
         }
     }
 
     void SetStimulusPosition()
     {
-        SystemManager.EnvManager.AddStimulusPosition(ControllerPositionState.GetLMove(LeftHandAnchor.localPosition));
+        SystemManager.EnvManager.AddStimulusPosition(ControllerPositionState.GetLMove(LeftHandAnchor.localPosition), LeftHandAnchor.position.y);
     }
 
     void SetStimulusRotation()
@@ -323,7 +330,12 @@ public class GUIManager : MonoBehaviour
     public void SetPromptText(string text)
     {
         PromptText.text = text;
+
+        // Add animation
     }
+
+    // Progress bar
+
 
     [ContextMenu("Next Study")]
     public void OnNextClick()
@@ -350,6 +362,7 @@ public class GUIManager : MonoBehaviour
     public void ToggleTutorial()
     {
         TutorialPanel.SetActive(!TutorialPanel.activeSelf);
+        StartButton.SetActive(true);
     }
 
     public void EndUserLayer()
@@ -367,7 +380,7 @@ public class GUIManager : MonoBehaviour
         EndingPanel.SetActive(false);
         TutorialPanel.SetActive(true);
         TutorialButton.SetActive(true);
-        StartButton.SetActive(true);
+        StartButton.SetActive(false);
         NextButton.SetActive(false);
         BackButton.SetActive(false);
     }

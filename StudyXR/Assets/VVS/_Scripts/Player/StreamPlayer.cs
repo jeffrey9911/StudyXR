@@ -13,6 +13,7 @@ public class StreamPlayer : MonoBehaviour
     private MeshRenderer PlayerInstanceRenderer;
     private Material PlayerInstanceMaterial;
     private VideoPlayer TexturePlayer;
+    private AudioSource TextureAudio;
     public RenderTexture TextureRenderer;
 
     public int TextureOffset = 0;
@@ -52,6 +53,14 @@ public class StreamPlayer : MonoBehaviour
         TexturePlayer = PlayerInstance.AddComponent<VideoPlayer>();
         TextureRenderer = new RenderTexture(2048, 2048, 24);
         TextureRenderer.wrapMode = TextureWrapMode.Repeat;
+
+        TextureAudio = PlayerInstance.AddComponent<AudioSource>();
+        TextureAudio.playOnAwake = false;
+        TextureAudio.spatialize = true;
+        
+        TexturePlayer.audioOutputMode = VideoAudioOutputMode.AudioSource;
+        TexturePlayer.SetTargetAudioSource(0, TextureAudio);
+
 
         PlayerInstanceMaterial = new Material(Shader.Find("Universal Render Pipeline/Lit"));
         PlayerInstanceMaterial.mainTexture = TextureRenderer;
