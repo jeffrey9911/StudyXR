@@ -7,13 +7,14 @@ StudyXR is a comprehensive framework designed to streamline the conduct of user 
 
 ## Features
 
-- **Easy Study Management**: Create and implement studies with approved methodologies and any type of stimuli
-- **Intuitive Interface**: Simplified UI with minimal learning curve for researchers and participants
-- **Versatile Data Collection**: Seamless integration with various data collection platforms
-- **Cross-Platform XR Deployment**: Easy deployment across VR, AR, and MR platforms with minimal reconfiguration
-- **MR System Support**: Passthrough capability reduces cybersickness and increases user comfort
-- **Real-time Lighting**: Generate realistic illumination and dynamic shadows in mixed reality
-- **Streamlined Configuration**: Concise configuration panel integrated into Unity's inspector
+- **Easy Study Management**: Create and implement studies with approved methodologies and any type of stimuli. Managed by StudyManager in Inspector.
+- **Intuitive Interface**: Simplified UI with minimal learning curve for researchers and participants.
+- **Versatile Data Collection**: Seamless integration with various data collection platforms. Survey displayed by just pasting the link to StudyManager.
+- **Cross-Platform XR Deployment**: Easy deployment across VR, AR, and MR platforms with minimal reconfiguration.
+- **MR System Support**: Passthrough capabilities.
+- **Real-time Lighting**: Generate realistic illumination and dynamic shadows in mixed reality. Lighting is managed in configuration panel. (Press & Hold: Left & Right Stick for 3 seconds) Researchers are free to add multiple lighting sources and modify various lighting configurations to achieve good alignment.
+- **Session Record & Replay**: Records the whole study session with customizable recording rates and objects. Generates organized csv files for replay and further data analysis. Session Player replays the saved recording by one click.
+- **Streamlined Configuration**: Concise configuration panel integrated into Unity's inspector.
 
 ## Technical Highlights
 
