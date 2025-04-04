@@ -1,5 +1,8 @@
-#
-
-##
-
+# For Mac
 *.DS_Store
+
+# ignore any builds
+/Build
+
+# ignore auto generated
+/SessionRecorder/*.csv

@@ -1,5 +1,14 @@
+using System.Collections.Generic;
+using System.Linq;
 using Meta.XR.MRUtilityKit;
 using UnityEngine;
+
+public enum LightingSetType
+{
+    Position,
+    Rotation,
+    Intensity
+}
 
 public class EnvManager : MonoBehaviour
 {
@@ -13,9 +22,16 @@ public class EnvManager : MonoBehaviour
     public Transform StimulusAnchor;
     public GameObject StimulusDebugObject;
 
-    public Light OverallLighting;
+    public Dictionary<string, Light> EnvLights = new Dictionary<string, Light>();
+    private Light CurrentLight;
+    private string CurrentLightName;
     public GameObject LightingDebugObject;
     public EffectMesh[] EffectMeshes;
+
+    public Material effectMaterial;
+    float shadowIntensity = 0.5f;
+
+    public LightingSetType LightingSetType = LightingSetType.Position;
 
     void Start()
     {
@@ -36,6 +52,7 @@ public class EnvManager : MonoBehaviour
     }
 
 
+
     public void AddStimulusPosition(Vector3 position, float controllerY)
     {
         StimulusAnchor.position += position;
@@ -47,14 +64,116 @@ public class EnvManager : MonoBehaviour
         StimulusAnchor.rotation *= Quaternion.Euler(0, angle * -250, 0);
     }
 
-    public void SetLightingDirection(Quaternion quaternion)
+    private void AddSunLight()
     {
-        OverallLighting.transform.rotation = quaternion;
+        Light light = new GameObject("EnvLight").AddComponent<Light>();
+        light.type = LightType.Directional;
+        light.intensity = 1;
+        light.color = Color.white;
+        light.transform.rotation = Quaternion.Euler(60, 0, 0);
+        light.shadows = LightShadows.Soft;
+
+        EnvLights.Add($"Sun_{EnvLights.Count}", light);
+
+        SystemManager.GUIManager.UpdateLightingList(EnvLights.Keys.ToList());
     }
 
-    public void AddLightingIntensity(float intensity)
+    private void AddPointLight(Vector3 position)
     {
-        OverallLighting.intensity += intensity * 50;
+        Light light = new GameObject("EnvLight").AddComponent<Light>();
+        light.type = LightType.Point;
+        light.range = 10;
+        light.intensity = 1;
+        light.color = Color.white;
+        light.transform.position = position;
+
+        light.shadows = LightShadows.Soft;
+
+        EnvLights.Add($"Light_{EnvLights.Count}", light);
+
+        SystemManager.GUIManager.UpdateLightingList(EnvLights.Keys.ToList());
+    }
+
+    private void AddSpotLight(Vector3 position)
+    {
+        Light light = new GameObject("EnvLight").AddComponent<Light>();
+        light.type = LightType.Spot;
+        light.innerSpotAngle = 0;
+        light.spotAngle = 60;
+        light.range = 10;
+        light.intensity = 1;
+        light.color = Color.white;
+        light.transform.position = position;
+
+        light.shadows = LightShadows.Soft;
+
+        EnvLights.Add($"Light_{EnvLights.Count}", light);
+
+        SystemManager.GUIManager.UpdateLightingList(EnvLights.Keys.ToList());
+    }
+
+
+    public void AddLight(Vector3 position)
+    {
+        if (EnvLights.Count == 0)
+        {
+            AddSunLight();
+            //AddSpotLight(position);
+        }
+        else if (EnvLights.Count < 10)
+        {
+            //AddPointLight(position);
+            AddSpotLight(position);
+        }
+        else
+        {
+            SystemDebugger.Instance.Log("Max number of lights reached (10)");
+        }
+
+
+        
+    }
+
+    public void RemoveCurrentLight()
+    {
+        if (CurrentLight != null)
+        {
+            Destroy(CurrentLight.gameObject);
+            EnvLights.Remove(CurrentLightName);
+        }
+
+        SystemManager.GUIManager.UpdateLightingList(EnvLights.Keys.ToList());
+    }
+
+    public void SelectLight(string lightName)
+    {
+        if (EnvLights.ContainsKey(lightName))
+        {
+            CurrentLight = EnvLights[lightName];
+            CurrentLightName = lightName;
+        }
+    }
+
+    public void SetLightingConfig(Vector3 pos, Quaternion rot, float intensity)
+    {
+        switch (LightingSetType)
+        {
+            case LightingSetType.Position:
+                CurrentLight.transform.position = pos;
+                break;
+            case LightingSetType.Rotation:
+                CurrentLight.transform.rotation = rot;
+                break;
+            case LightingSetType.Intensity:
+                CurrentLight.intensity += intensity;
+                break;
+        }
+    }
+
+    public void SetEffectMaterial(float intensity)
+    {
+        shadowIntensity += intensity;
+        effectMaterial.SetFloat("_ShadowIntensity", shadowIntensity);
     }
 
     public void ToggleOffDebugObject()
@@ -65,7 +184,6 @@ public class EnvManager : MonoBehaviour
 
     public void ToggleOnDebugObject(Vector3 sunPosition)
     {
-        OverallLighting.transform.position = sunPosition;
         StimulusDebugObject.SetActive(true);
         LightingDebugObject.SetActive(true);
     }

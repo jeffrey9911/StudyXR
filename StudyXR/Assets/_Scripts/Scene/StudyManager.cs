@@ -92,6 +92,8 @@ public class StudyManager : MonoBehaviour
         SystemManager.WebManager.LoadWebPage(currentStudy.StudyQuestionnaire);
 
         if (!currentStudy.OverideVVPlayback) StimulusList[currentStudy].ManualPlay();
+
+        SystemManager.SessionManager.ClearEvents();
     }
 
     public void CloseAllStudies()

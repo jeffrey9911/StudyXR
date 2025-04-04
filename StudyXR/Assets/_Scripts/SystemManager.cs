@@ -9,6 +9,8 @@ public class SystemManager : MonoBehaviour
     public EnvManager EnvManager;
     public StudyManager StudyManager;
     public WebManager WebManager;
+    public AIManager AIManager;
+    public SessionManager SessionManager;
 
     void SetManager()
     {
@@ -16,6 +18,8 @@ public class SystemManager : MonoBehaviour
         EnvManager.SetManager(this);
         StudyManager.SetManager(this);
         WebManager.SetManager(this);
+        AIManager.SetManager(this);
+        SessionManager.SetManager(this);
     }
 
     void Start()

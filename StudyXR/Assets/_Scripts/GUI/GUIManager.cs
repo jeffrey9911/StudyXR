@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework.Internal;
 using TMPro;
@@ -10,8 +12,8 @@ public enum SettingType
 {
     StimulusPosition,
     SitmulusRotation,
-    LightingDirection,
-    LightingIntensity
+    Lighting,
+    ShadowIntensity
 }
 
 public class ControllerPositionState
@@ -94,9 +96,13 @@ public class GUIManager : MonoBehaviour
     // CONFIG UI
     public GameObject ConfigPanel;
     float ConfigToggleTimer = 0f;
-    public ToggleGroup TogglesGroup;
+    public ToggleGroup ConfigTogglesGroup;
     SettingType ActiveSettingType;
     public TMP_InputField PidInput;
+    public GameObject LightingPanel;
+    public ToggleGroup LightingTogglesGroup;
+    public GameObject LightingListScrollContent;
+    public GameObject LightingListPrefab;
 
     // USER UI
     public TMP_Text PidText;
@@ -108,6 +114,13 @@ public class GUIManager : MonoBehaviour
     public GameObject NextButton;
     public GameObject BackButton;
     public GameObject EndingPanel;
+    public Image SessionPanel;
+    Color SessionPanelColor;
+    private Coroutine SessionPanelHighlightCoroutine;
+    public Image PromptPanel;
+    private Coroutine PromptPanelHighlightCoroutine;
+    Color PromptPanelColor;
+
 
 
     void Start()
@@ -117,6 +130,10 @@ public class GUIManager : MonoBehaviour
         AnchorRotation = MainCanvas.transform.rotation;
 
         ConfigPanel.SetActive(false);
+        LightingPanel.SetActive(false);
+
+        SessionPanelColor = SessionPanel.color;
+        PromptPanelColor = PromptPanel.color;
     }
 
     void Update()
@@ -138,8 +155,24 @@ public class GUIManager : MonoBehaviour
     {
         if (OVRInput.GetDown(OVRInput.Button.Start))
         {
+            AddHapticFeedback(OVRInput.Controller.LTouch, .1f, .7f, .5f);
             isDisplayGUI = !isDisplayGUI;
             MainCanvas.SetActive(isDisplayGUI);
+        }
+
+        if (OVRInput.GetDown(OVRInput.Button.PrimaryHandTrigger) || OVRInput.GetUp(OVRInput.Button.PrimaryHandTrigger))
+        {
+            AddHapticFeedback(OVRInput.Controller.LTouch, .1f, .7f, .3f);
+        }
+
+        if (OVRInput.GetDown(OVRInput.Button.SecondaryHandTrigger) || OVRInput.GetUp(OVRInput.Button.SecondaryHandTrigger))
+        {
+            AddHapticFeedback(OVRInput.Controller.RTouch, .1f, .7f, .3f);
+        }
+
+        if (OVRInput.GetDown(OVRInput.Button.SecondaryIndexTrigger) || OVRInput.GetUp(OVRInput.Button.SecondaryIndexTrigger))
+        {
+            AddHapticFeedback(OVRInput.Controller.RTouch, .1f, .9f, .3f);
         }
 
         if (isDisplayGUI)
@@ -184,6 +217,18 @@ public class GUIManager : MonoBehaviour
         }
     }
 
+    public void AddHapticFeedback(OVRInput.Controller controller, float duration = .1f, float frequency = .5f, float amplitude = .5f)
+    {
+        OVRInput.SetControllerVibration(frequency, amplitude, controller);
+        StartCoroutine(StopHapticEvent(controller, duration));
+    }
+
+    private IEnumerator StopHapticEvent(OVRInput.Controller controller, float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        OVRInput.SetControllerVibration(0, 0, controller);
+    }
+
     void UpdateControllerState()
     {
         if (isDisplayGUI)
@@ -201,7 +246,8 @@ public class GUIManager : MonoBehaviour
 
     void UpdateCursor()
     {
-        Cursor.rotation = Quaternion.LookRotation(CentreEye.position - Cursor.position, Vector3.up);
+        //Cursor.rotation = Quaternion.LookRotation(CentreEye.position - Cursor.position, Vector3.up);
+        Cursor.LookAt(CentreEye);
     }
 
     // CONFIG UI
@@ -256,11 +302,11 @@ public class GUIManager : MonoBehaviour
                     case SettingType.SitmulusRotation:
                         SetStimulusRotation();
                         break;
-                    case SettingType.LightingDirection:
-                        SetLightingDirection();
+                    case SettingType.Lighting:
+                        SetLighting();
                         break;
-                    case SettingType.LightingIntensity:
-                        SetLightingIntensity();
+                    case SettingType.ShadowIntensity:
+                        SetShadow();
                         break;
                 }
             }
@@ -282,47 +328,172 @@ public class GUIManager : MonoBehaviour
         SystemManager.EnvManager.AddStimulusRotation(ControllerPositionState.GetLMoveHorizontal(LeftHandAnchor.localPosition, CentreEye.forward));
     }
 
-    void SetLightingDirection()
+    void SetLighting()
     {
-        SystemManager.EnvManager.SetLightingDirection(LeftHandAnchor.rotation);
+        SystemManager.EnvManager.SetLightingConfig(LeftHandAnchor.position, 
+            LeftHandAnchor.rotation,
+            ControllerPositionState.GetLMoveHorizontal(LeftHandAnchor.localPosition, CentreEye.forward));
     }
 
-    void SetLightingIntensity()
+    void SetShadow()
     {
-        SystemManager.EnvManager.AddLightingIntensity(ControllerPositionState.GetLMoveHorizontal(LeftHandAnchor.localPosition, CentreEye.forward));
+        SystemManager.EnvManager.SetEffectMaterial(
+            ControllerPositionState.GetLMoveHorizontal(LeftHandAnchor.localPosition, CentreEye.forward)
+        );
     }
+    
 
-    public void OnToggleChanged()
+    public void OnConfigToggleChanged()
     {
-        Toggle activeToggle = TogglesGroup.ActiveToggles().FirstOrDefault();
+        Toggle activeConfigToggle = ConfigTogglesGroup.ActiveToggles().FirstOrDefault();
 
-        switch (activeToggle.transform.GetSiblingIndex())
+        switch (activeConfigToggle.transform.GetSiblingIndex())
         {
             case 0:
                 ActiveSettingType = SettingType.StimulusPosition;
+                LightingPanel.SetActive(false);
                 SystemDebugger.Instance.Log("Setting Stimulus Position");
                 break;
             case 1:
                 ActiveSettingType = SettingType.SitmulusRotation;
+                LightingPanel.SetActive(false);
                 SystemDebugger.Instance.Log("Setting Stimulus Rotation");
                 break;
             case 2:
-                ActiveSettingType = SettingType.LightingDirection;
-                SystemDebugger.Instance.Log("Setting Lighting Direction");
+                ActiveSettingType = SettingType.Lighting;
+                LightingPanel.SetActive(true);
+                SystemDebugger.Instance.Log("Managing Lighting");
                 break;
             case 3:
-                ActiveSettingType = SettingType.LightingIntensity;
+                ActiveSettingType = SettingType.ShadowIntensity;
+                SystemDebugger.Instance.Log("Setting Shadow Intensity");
+                break;
+            default:
+                SystemDebugger.Instance.Log("Default Setting");
+                LightingPanel.SetActive(false);
+                break;
+        }
+    }
+
+    public void OnLightingToggleChanged()
+    {
+        Toggle activeLightingToggle = LightingTogglesGroup.ActiveToggles().FirstOrDefault();
+
+        switch (activeLightingToggle.transform.GetSiblingIndex())
+        {
+            case 0:
+                SystemManager.EnvManager.LightingSetType = LightingSetType.Position;
+                SystemDebugger.Instance.Log("Setting Lighting Position");
+                break;
+            
+            case 1:
+                SystemManager.EnvManager.LightingSetType = LightingSetType.Rotation;
+                SystemDebugger.Instance.Log("Setting Lighting Rotation");
+                break;
+
+            case 2:
+                SystemManager.EnvManager.LightingSetType = LightingSetType.Intensity;
                 SystemDebugger.Instance.Log("Setting Lighting Intensity");
                 break;
         }
+    }
+
+    public void UpdateLightingList(List<string> options)
+    {
+        ClearContent();
+        
+        foreach (string option in options)
+        {
+            GameObject lightingItem = Instantiate(LightingListPrefab);
+            DontDestroyOnLoad(lightingItem);
+            lightingItem.transform.SetParent(LightingListScrollContent.transform, worldPositionStays: false);
+            lightingItem.GetComponent<TMP_Text>().text = option;
+            Toggle toggle = lightingItem.GetComponent<Toggle>();
+            toggle.group = LightingListScrollContent.GetComponent<ToggleGroup>();
+            toggle.onValueChanged.AddListener(delegate { OnLightingListToggleChanged(); });
+        }
+
+        // auto select the last one
+        //LightingListScrollContent.GetComponent<ToggleGroup>().ActiveToggles().Last().isOn = true;
+    }
+
+    private void ClearContent()
+    {
+        foreach (Transform child in LightingListScrollContent.transform)
+        {
+            Destroy(child.gameObject);
+        }
+    }
+
+    public void OnLightingListToggleChanged()
+    {
+        SystemManager.EnvManager.SelectLight(LightingListScrollContent.GetComponent<ToggleGroup>().ActiveToggles().FirstOrDefault().GetComponent<TMP_Text>().text);
+    }
+
+    public void AddHighlightEventToSessionID(float duration = 1f)
+    {
+        if (SessionPanelHighlightCoroutine != null)
+        {
+            StopCoroutine(SessionPanelHighlightCoroutine);
+        }
+
+        SessionPanelHighlightCoroutine = StartCoroutine(HighlightEvent(SessionPanel, duration));
+    }
+
+    [ContextMenu("Add Highlight")]
+    public void AddHighlightEventToPrompt(float duration = 1f)
+    {
+        if (PromptPanelHighlightCoroutine != null)
+        {
+            StopCoroutine(PromptPanelHighlightCoroutine);
+        }
+
+        PromptPanelHighlightCoroutine = StartCoroutine(HighlightEvent(PromptPanel, duration));
+    }
+
+    private IEnumerator HighlightEvent(Image image, float duration)
+    {
+        Color originalColor = image.color;
+
+        if (image == SessionPanel)
+        {
+            originalColor = SessionPanelColor;
+        }
+        else if (image == PromptPanel)
+        {
+            originalColor = PromptPanelColor;
+        }
+
+        image.color = new Color(1, 0, 0, 1);
+
+        for (float t = 0; t < duration; t += Time.deltaTime)
+        {
+
+            image.color = Color.Lerp(image.color, originalColor, t / duration);
+            yield return new WaitForSeconds(Time.deltaTime);
+        }
+
+        image.color = originalColor;
+    }
+
+    [ContextMenu("Add Light")]
+    public void OnAddLightClick()
+    {
+        SystemManager.EnvManager.AddLight(LeftHandAnchor.position);
+    }
+
+    [ContextMenu("Remove Light")]
+    public void OnRemoveLightClick()
+    {
+        SystemManager.EnvManager.RemoveCurrentLight();
     }
 
 
     [ContextMenu("Set PID")]
     public void SetPid()
     {
-        PidText.text = $"Your PID: {PidInput.text}";
-        SystemDebugger.Instance.Log($"Set PID: {PidInput.text}");
+        PidText.text = $"Session ID: {PidInput.text}";
+        SystemDebugger.Instance.Log($"Set Session ID: {PidInput.text}");
     }
 
     // USER UI
@@ -341,12 +512,18 @@ public class GUIManager : MonoBehaviour
     public void OnNextClick()
     {
         SystemManager.StudyManager.NextStudy();
+
+        AddHighlightEventToSessionID(10f);
+        AddHighlightEventToPrompt(10f);
     }
 
     [ContextMenu("Previous Study")]
     public void OnBackClick()
     {
         SystemManager.StudyManager.PreviousStudy();
+
+        AddHighlightEventToSessionID(10f);
+        AddHighlightEventToPrompt(10f);
     }
 
     [ContextMenu("Start Study")]
@@ -356,12 +533,19 @@ public class GUIManager : MonoBehaviour
         SystemManager.StudyManager.StartStudyFrom(0);
         StartStudyLayer();
 
+        AddHighlightEventToSessionID(10f);
+        AddHighlightEventToPrompt(10f);
     }
 
     [ContextMenu("Toggle Tutorial")]
     public void ToggleTutorial()
     {
         TutorialPanel.SetActive(!TutorialPanel.activeSelf);
+        if(!TutorialPanel.activeSelf)
+        {
+            AddHighlightEventToSessionID(10f);
+            AddHighlightEventToPrompt(10f);
+        }
         StartButton.SetActive(true);
     }
 

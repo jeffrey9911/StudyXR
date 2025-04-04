@@ -24,5 +24,6 @@ public class SystemDebugger : MonoBehaviour
     public void Log(string message)
     {
         DebuggerText.text += message + "\n";
+        Debug.Log(message);
     }
 }
