@@ -50,3 +50,5 @@ StudyXR has been validated through exploratory user testing, demonstrating:
 - Effective immersive experience
 
 ## Publication
+
+- [StudyXR: A Framework to Streamline User Study in Immersive Environments](https://doi.org/10.1109/VRW66409.2025.00091)
